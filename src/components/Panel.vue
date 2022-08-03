@@ -25,13 +25,6 @@ export default {
 </script>
 
 <style>
-:root {
-    --panel-background: #32CD32;
-    --panel-btn-main: #239023;
-    --panel-btn-hover: #145214;
-    --panel-btn-active: #0f3e0f;
-}
-
 nav {
     display: flex;
     background: var(--panel-background);
