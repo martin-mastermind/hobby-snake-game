@@ -12,6 +12,8 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+
 export default {
     name: 'Field',
     data() {
@@ -30,7 +32,6 @@ export default {
             points: [],
             allowedKeys: ['w', 'a', 's', 'd'],
             direction: null,
-            score: 0,
             pointsLimit: 3,
 
             gameTimer: null
@@ -46,6 +47,7 @@ export default {
         }, 750);
     },
     methods: {
+        ...mapActions(['addScore', 'resetScore']),
         getRandomInt(min, max) {
             const rand = min + Math.random() * (max + 1 - min)
             return Math.floor(rand)
@@ -85,6 +87,7 @@ export default {
 
             if(outOfMap || selfEaten) {
                 clearInterval(this.gameTimer)
+                this.resetScore()
                 return
             }
 
@@ -107,7 +110,7 @@ export default {
 
             for (const index in this.points) {
                 if (this.collidePoints(this.points[index], this.snakeHead)) {
-                    this.score++
+                    this.addScore()
                     this.points.splice(index, 1)
                     this.snakeBody.push(oldTailPosition ? oldTailPosition : oldHeadPosition)
                 }

@@ -1,17 +1,23 @@
 <template>
     <nav>
         <section class="score">
-            <div class="current">Current: 0</div>
-            <div class="best">Best: 10</div>
+            <div class="current">Current: {{ allScore.score }}</div>
+            <div class="best">Best: {{ allScore.bestScore }}</div>
         </section>
         <section class="controls">
-            <div class="controls-btn play">
+            <div class="controls-btn play" :class="{
+                'disabled': gameState === 1
+            }" @click="start">
                 <img src="@/assets/play.png" alt="">
             </div>
-            <div class="controls-btn pause">
+            <div class="controls-btn pause" :class="{
+                'disabled': gameState === 0
+            }" @click="pause">
                 <img src="@/assets/pause.png" alt="">
             </div>
-            <div class="controls-btn reset">
+            <div class="controls-btn reset" :class="{
+                'disabled': gameState === -1
+            }" @click="reset">
                 <img src="@/assets/reset.png" alt="">
             </div>
         </section>
@@ -19,8 +25,16 @@
 </template>
 
 <script>
+import { mapActions, mapGetters } from 'vuex'
+
 export default {
-  name: 'Panel'
+  name: 'Panel',
+  computed: {
+    ...mapGetters(['allScore', 'gameState'])
+  },
+  methods: {
+    ...mapActions(['start', 'pause', 'reset'])
+  }
 }
 </script>
 
@@ -68,6 +82,11 @@ nav {
 
 .controls-btn:active {
     background-color: var(--panel-btn-active);
+}
+
+.controls-btn.disabled {
+    border-color: gray;
+    background-color: darkgray;
 }
 
 .controls-btn img {
