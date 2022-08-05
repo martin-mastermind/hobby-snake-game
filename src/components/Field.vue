@@ -31,6 +31,7 @@ export default {
             allowedKeys: ['w', 'a', 's', 'd'],
             direction: null,
             score: 0,
+            pointsLimit: 3,
 
             gameTimer: null
         }
@@ -63,7 +64,8 @@ export default {
             return pointA.x === pointB.x && pointA.y === pointB.y
         },
         gameTick() {
-            const oldSnakePosition = { ...this.snakeHead }
+            const oldHeadPosition = { ...this.snakeHead }
+            const oldTailPosition = this.snakeBody.length ? { ...this.snakeBody[this.snakeBody.length - 1] } : null
 
             if (this.direction === 'w') {
                 this.snakeHead.y--
@@ -78,7 +80,10 @@ export default {
                 this.snakeHead.x++
             }
 
-            if(this.snakeHead.x > 3 || this.snakeHead.x < 0 || this.snakeHead.y > 3 || this.snakeHead.y < 0) {
+            const outOfMap = this.snakeHead.x > 3 || this.snakeHead.x < 0 || this.snakeHead.y > 3 || this.snakeHead.y < 0
+            const selfEaten = this.snakeBody.some(point => point.x === this.snakeHead.x && point.y === this.snakeHead.y)
+
+            if(outOfMap || selfEaten) {
                 clearInterval(this.gameTimer)
                 return
             }
@@ -87,11 +92,11 @@ export default {
                 for (let i = this.snakeBody.length - 1; i > 0; i--) {
                     this.snakeBody[i] = { ...this.snakeBody[i - 1] }
                 }
-                this.snakeBody[0] = oldSnakePosition
+                this.snakeBody[0] = oldHeadPosition
             }
 
             const pointSpawner = this.getRandomInt(0, 100)
-            if (pointSpawner > 80) {
+            if (pointSpawner > 75 && this.points.length < this.pointsLimit) {
                 let newPoint = this.getRandomPoint()
                 if(!this.collidePoints(newPoint, this.snakeHead) &&
                     this.snakeBody.every(point => !this.collidePoints(newPoint, point)) && 
@@ -104,7 +109,7 @@ export default {
                 if (this.collidePoints(this.points[index], this.snakeHead)) {
                     this.score++
                     this.points.splice(index, 1)
-                    this.snakeBody.push(oldSnakePosition)
+                    this.snakeBody.push(oldTailPosition ? oldTailPosition : oldHeadPosition)
                 }
             }
 
