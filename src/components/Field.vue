@@ -30,7 +30,7 @@ export default {
             },
             snakeBody: [],
             points: [],
-            allowedKeys: ['w', 'a', 's', 'd'],
+            allowedKeys: [87, 65, 83, 68],
             direction: null,
             pointsLimit: 3,
 
@@ -53,8 +53,8 @@ export default {
             return Math.floor(rand)
         },
         initLogic(e) {
-            if (!this.allowedKeys.includes(e.key)) return
-            this.direction = e.key
+            if (!this.allowedKeys.includes(e.keyCode)) return
+            this.direction = e.keyCode
         },
         getRandomPoint() {
             return {
@@ -69,16 +69,16 @@ export default {
             const oldHeadPosition = { ...this.snakeHead }
             const oldTailPosition = this.snakeBody.length ? { ...this.snakeBody[this.snakeBody.length - 1] } : null
 
-            if (this.direction === 'w') {
+            if (this.direction === 87) {
                 this.snakeHead.y--
             }
-            if (this.direction === 'a') {
+            if (this.direction === 65) {
                 this.snakeHead.x--
             }
-            if (this.direction === 's') {
+            if (this.direction === 83) {
                 this.snakeHead.y++
             }
-            if (this.direction === 'd') {
+            if (this.direction === 68) {
                 this.snakeHead.x++
             }
 
