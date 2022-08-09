@@ -6,7 +6,7 @@
         </section>
         <section class="controls">
             <div class="controls-btn play" :class="{
-                'disabled': gameState === 1
+                'disabled': isStarted
             }" @click="start">
                 <img src="@/assets/play.png" alt="">
             </div>
@@ -20,7 +20,7 @@ import { mapActions, mapGetters } from 'vuex'
 export default {
   name: 'Panel',
   computed: {
-    ...mapGetters(['allScore', 'gameState'])
+    ...mapGetters(['allScore', 'isStarted'])
   },
   methods: {
     ...mapActions(['start'])

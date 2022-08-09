@@ -1,11 +1,11 @@
 <template>
     <main>
         <div class="row" v-for="(row, i) in field" :key="`r-${i}`">
-            <div class="block" v-for="(block, i) in row" :class="{
+            <div class="block" v-for="(block, j) in row" :class="{
                 'snake-head': block === 1,
                 'snake-body': block === 2,
                 'point': block === 3
-            }" :key="`r-c-${i}`">
+            }" :key="`r-c-${j}`" :ref="`block-${j}-${i}`">
             </div>
         </div>
     </main>
@@ -18,12 +18,7 @@ export default {
     name: 'Field',
     data() {
         return {
-            field: [
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-            ],
+            field: [],
             snakeHead: {
                 x: 0,
                 y: 0
@@ -32,6 +27,7 @@ export default {
             points: [],
             allowedKeys: [87, 65, 83, 68],
             direction: null,
+            fieldSize: 4,
             pointsLimit: 3,
 
             gameTimer: null,
@@ -42,6 +38,7 @@ export default {
         ...mapGetters(['isStarted'])
     },
     created() {
+        this.field = Array.from(Array(this.fieldSize), () => new Array(this.fieldSize).fill(0))
         window.addEventListener('keyup', this.initLogic)
     },
     watch: {
@@ -62,12 +59,7 @@ export default {
             this.gameTimer = requestAnimationFrame(this.gameTick)
         },
         resetGame() {
-            this.field = [
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-            ]
+            this.field = Array.from(Array(this.fieldSize), () => new Array(this.fieldSize).fill(0))
 
             this.snakeHead = {
                 x: 0,
@@ -92,16 +84,16 @@ export default {
         },
         getRandomPoint() {
             return {
-                x: this.getRandomInt(0, 3),
-                y: this.getRandomInt(0, 3)
+                x: this.getRandomInt(0, this.fieldSize - 1),
+                y: this.getRandomInt(0, this.fieldSize - 1)
             }
         },
         collidePoints(pointA, pointB) {
             return pointA.x === pointB.x && pointA.y === pointB.y
         },
-        gameTick() {     
+        gameTick() {
             if (!this.isStarted) return
-            
+
             const oldHeadPosition = { ...this.snakeHead }
             const oldTailPosition = this.snakeBody.length ? { ...this.snakeBody[this.snakeBody.length - 1] } : null
 
@@ -118,10 +110,10 @@ export default {
                 this.snakeHead.x++
             }
 
-            const outOfMap = this.snakeHead.x > 3 || this.snakeHead.x < 0 || this.snakeHead.y > 3 || this.snakeHead.y < 0
+            const outOfMap = this.snakeHead.x > this.fieldSize - 1 || this.snakeHead.x < 0 || this.snakeHead.y > this.fieldSize - 1 || this.snakeHead.y < 0
             const selfEaten = this.snakeBody.some(point => point.x === this.snakeHead.x && point.y === this.snakeHead.y)
 
-            if(outOfMap || selfEaten) {
+            if (outOfMap || selfEaten) {
                 this.resetScore()
                 setTimeout(this.resetGame, 500)
                 return
@@ -137,11 +129,11 @@ export default {
             const pointSpawner = this.getRandomInt(0, 100)
             if (pointSpawner > 75 && this.points.length < this.pointsLimit) {
                 let newPoint = this.getRandomPoint()
-                if(!this.collidePoints(newPoint, this.snakeHead) &&
-                    this.snakeBody.every(point => !this.collidePoints(newPoint, point)) && 
+                if (!this.collidePoints(newPoint, this.snakeHead) &&
+                    this.snakeBody.every(point => !this.collidePoints(newPoint, point)) &&
                     this.points.every(point => !this.collidePoints(newPoint, point))) {
-                        this.points.push(newPoint)
-                    }
+                    this.points.push(newPoint)
+                }
             }
 
             for (const index in this.points) {
@@ -159,12 +151,7 @@ export default {
             }, 1000 / this.fps)
         },
         render() {
-            this.field = [
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-            ]
+            this.field = Array.from(Array(this.fieldSize), () => new Array(this.fieldSize).fill(0))
 
             this.field[this.snakeHead.y][this.snakeHead.x] = 1
             for (const bodyPart of this.snakeBody) {
@@ -174,7 +161,49 @@ export default {
             for (const point of this.points) {
                 this.field[point.y][point.x] = 3
             }
-        }
+        },
+
+        smoothMoveRight(block1, block2) {
+            let percent = 0
+            const timer = setInterval(() => {
+                percent++
+                block1.style.background = `linear-gradient(90deg, #fff ${percent}%, green 0%)`
+                block2.style.background = `linear-gradient(-90deg, #fff ${100 - percent}%, green 0%)`
+
+                if(percent === 100) clearInterval(timer)
+            }, 1000 / 60)
+        },
+        smoothMoveLeft(block1, block2) {
+            let percent = 0
+            const timer = setInterval(() => {
+                percent++
+                block1.style.background = `linear-gradient(-90deg, #fff ${percent}%, green 0%)`
+                block2.style.background = `linear-gradient(90deg, #fff ${100 - percent}%, green 0%)`
+
+                if(percent === 100) clearInterval(timer)
+            }, 1000 / 60)
+        },
+
+        smoothMoveUp(block1, block2) {
+            let percent = 0
+            const timer = setInterval(() => {
+                percent++
+                block1.style.background = `linear-gradient(-0deg, #fff ${percent}%, green 0%)`
+                block2.style.background = `linear-gradient(#fff ${100 - percent}%, green 0%)`
+
+                if(percent === 100) clearInterval(timer)
+            }, 1000 / 60)
+        },
+        smoothMoveDown(block1, block2) {
+            let percent = 0
+            const timer = setInterval(() => {
+                percent++
+                block1.style.background = `linear-gradient(#fff ${percent}%, green 0%)`
+                block2.style.background = `linear-gradient(-0deg, #fff ${100 - percent}%, green 0%)`
+
+                if(percent === 100) clearInterval(timer)
+            }, 1000 / 60)
+        },
     }
 }
 </script>
