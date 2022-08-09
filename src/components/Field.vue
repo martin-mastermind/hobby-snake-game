@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
     name: 'Field',
@@ -34,25 +34,59 @@ export default {
             direction: null,
             pointsLimit: 3,
 
-            gameTimer: null
+            gameTimer: null,
+            fps: 2
         }
     },
+    computed: {
+        ...mapGetters(['isStarted'])
+    },
     created() {
-        this.snakeHead = this.getRandomPoint();
-        this.field[this.snakeHead.y][this.snakeHead.x] = 1
-
         window.addEventListener('keyup', this.initLogic)
-        this.gameTimer = setInterval(() => {
-            this.gameTick();
-        }, 750);
+    },
+    watch: {
+        isStarted(newVal) {
+            if (newVal) this.startGame()
+        }
     },
     methods: {
-        ...mapActions(['addScore', 'resetScore']),
+        ...mapActions(['addScore', 'resetScore', 'reset']),
         getRandomInt(min, max) {
             const rand = min + Math.random() * (max + 1 - min)
             return Math.floor(rand)
         },
+        startGame() {
+            this.snakeHead = this.getRandomPoint();
+            this.field[this.snakeHead.y][this.snakeHead.x] = 1
+
+            this.gameTimer = requestAnimationFrame(this.gameTick)
+        },
+        resetGame() {
+            this.field = [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+            ]
+
+            this.snakeHead = {
+                x: 0,
+                y: 0
+            }
+
+            this.snakeBody = []
+            this.points = []
+
+            this.direction = null
+
+            cancelAnimationFrame(this.gameTimer)
+            this.gameTimer = null
+
+            this.reset()
+        },
         initLogic(e) {
+            if (!this.isStarted) return
+
             if (!this.allowedKeys.includes(e.keyCode)) return
             this.direction = e.keyCode
         },
@@ -65,7 +99,9 @@ export default {
         collidePoints(pointA, pointB) {
             return pointA.x === pointB.x && pointA.y === pointB.y
         },
-        gameTick() {
+        gameTick() {     
+            if (!this.isStarted) return
+            
             const oldHeadPosition = { ...this.snakeHead }
             const oldTailPosition = this.snakeBody.length ? { ...this.snakeBody[this.snakeBody.length - 1] } : null
 
@@ -86,8 +122,8 @@ export default {
             const selfEaten = this.snakeBody.some(point => point.x === this.snakeHead.x && point.y === this.snakeHead.y)
 
             if(outOfMap || selfEaten) {
-                clearInterval(this.gameTimer)
                 this.resetScore()
+                setTimeout(this.resetGame, 500)
                 return
             }
 
@@ -117,6 +153,10 @@ export default {
             }
 
             this.render()
+
+            setTimeout(() => {
+                this.gameTimer = requestAnimationFrame(this.gameTick)
+            }, 1000 / this.fps)
         },
         render() {
             this.field = [

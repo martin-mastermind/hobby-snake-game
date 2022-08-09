@@ -4,18 +4,18 @@ export default createStore({
   state: {
     score: 0,
     bestScore: 0,
-    gameState: 0
+    isStarted: false
   },
   mutations: {
     ADD_SCORE(state) {
       state.score++
     },
     RESET_SCORE(state) {
-      state.bestScore = state.score
+      state.bestScore = Math.max(state.bestScore, state.score)
       state.score = 0
     },
-    SET_GAME_STATE(state, type) {
-      state.gameState = type
+    SET_IS_STARTED(state, type) {
+      state.isStarted = type
     }
   },
   getters: {
@@ -25,8 +25,8 @@ export default createStore({
         bestScore: state.bestScore
       }
     },
-    gameState(state) {
-      return state.gameState
+    isStarted(state) {
+      return state.isStarted
     }
   },
   actions: {
@@ -37,19 +37,14 @@ export default createStore({
       commit('RESET_SCORE');
     },
     start({ commit, state }) {
-      if (state.gameState === 1) return
+      if (state.isStarted) return
 
-      commit('SET_GAME_STATE', 1)
-    },
-    pause({ commit, state }) {
-      if (state.gameState === 0) return
-
-      commit('SET_GAME_STATE', 0)
+      commit('SET_IS_STARTED', true)
     },
     reset({ commit, state }) {
-      if (state.gameState === -1) return
+      if (!state.isStarted) return
 
-      commit('SET_GAME_STATE', -1)
+      commit('SET_IS_STARTED', false)
     },
   }
 })

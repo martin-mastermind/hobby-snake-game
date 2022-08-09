@@ -10,16 +10,6 @@
             }" @click="start">
                 <img src="@/assets/play.png" alt="">
             </div>
-            <div class="controls-btn pause" :class="{
-                'disabled': gameState === 0
-            }" @click="pause">
-                <img src="@/assets/pause.png" alt="">
-            </div>
-            <div class="controls-btn reset" :class="{
-                'disabled': gameState === -1
-            }" @click="reset">
-                <img src="@/assets/reset.png" alt="">
-            </div>
         </section>
     </nav>
 </template>
@@ -33,7 +23,7 @@ export default {
     ...mapGetters(['allScore', 'gameState'])
   },
   methods: {
-    ...mapActions(['start', 'pause', 'reset'])
+    ...mapActions(['start'])
   }
 }
 </script>
