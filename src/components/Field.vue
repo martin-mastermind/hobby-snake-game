@@ -80,6 +80,12 @@ export default {
             if (!this.isStarted) return
 
             if (!this.allowedKeys.includes(e.keyCode)) return
+
+            if (this.direction === 87 && e.keyCode === 83) return
+            if (this.direction === 83 && e.keyCode === 87) return
+            if (this.direction === 65 && e.keyCode === 68) return
+            if (this.direction === 68 && e.keyCode === 65) return
+            
             this.direction = e.keyCode
         },
         getRandomPoint() {
@@ -97,18 +103,10 @@ export default {
             const oldHeadPosition = { ...this.snakeHead }
             const oldTailPosition = this.snakeBody.length ? { ...this.snakeBody[this.snakeBody.length - 1] } : null
 
-            if (this.direction === 87) {
-                this.snakeHead.y--
-            }
-            if (this.direction === 65) {
-                this.snakeHead.x--
-            }
-            if (this.direction === 83) {
-                this.snakeHead.y++
-            }
-            if (this.direction === 68) {
-                this.snakeHead.x++
-            }
+            if (this.direction === 87) this.snakeHead.y--
+            if (this.direction === 65) this.snakeHead.x--
+            if (this.direction === 83) this.snakeHead.y++
+            if (this.direction === 68) this.snakeHead.x++
 
             const outOfMap = this.snakeHead.x > this.fieldSize - 1 || this.snakeHead.x < 0 || this.snakeHead.y > this.fieldSize - 1 || this.snakeHead.y < 0
             const selfEaten = this.snakeBody.some(point => point.x === this.snakeHead.x && point.y === this.snakeHead.y)
@@ -154,6 +152,7 @@ export default {
             this.field = Array.from(Array(this.fieldSize), () => new Array(this.fieldSize).fill(0))
 
             this.field[this.snakeHead.y][this.snakeHead.x] = 1
+
             for (const bodyPart of this.snakeBody) {
                 this.field[bodyPart.y][bodyPart.x] = 2
             }
@@ -161,49 +160,7 @@ export default {
             for (const point of this.points) {
                 this.field[point.y][point.x] = 3
             }
-        },
-
-        smoothMoveRight(block1, block2) {
-            let percent = 0
-            const timer = setInterval(() => {
-                percent++
-                block1.style.background = `linear-gradient(90deg, #fff ${percent}%, green 0%)`
-                block2.style.background = `linear-gradient(-90deg, #fff ${100 - percent}%, green 0%)`
-
-                if(percent === 100) clearInterval(timer)
-            }, 1000 / 60)
-        },
-        smoothMoveLeft(block1, block2) {
-            let percent = 0
-            const timer = setInterval(() => {
-                percent++
-                block1.style.background = `linear-gradient(-90deg, #fff ${percent}%, green 0%)`
-                block2.style.background = `linear-gradient(90deg, #fff ${100 - percent}%, green 0%)`
-
-                if(percent === 100) clearInterval(timer)
-            }, 1000 / 60)
-        },
-
-        smoothMoveUp(block1, block2) {
-            let percent = 0
-            const timer = setInterval(() => {
-                percent++
-                block1.style.background = `linear-gradient(-0deg, #fff ${percent}%, green 0%)`
-                block2.style.background = `linear-gradient(#fff ${100 - percent}%, green 0%)`
-
-                if(percent === 100) clearInterval(timer)
-            }, 1000 / 60)
-        },
-        smoothMoveDown(block1, block2) {
-            let percent = 0
-            const timer = setInterval(() => {
-                percent++
-                block1.style.background = `linear-gradient(#fff ${percent}%, green 0%)`
-                block2.style.background = `linear-gradient(-0deg, #fff ${100 - percent}%, green 0%)`
-
-                if(percent === 100) clearInterval(timer)
-            }, 1000 / 60)
-        },
+        }
     }
 }
 </script>
