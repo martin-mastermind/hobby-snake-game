@@ -27,11 +27,11 @@ export default {
             points: [],
             allowedKeys: [87, 65, 83, 68],
             direction: null,
-            fieldSize: 4,
-            pointsLimit: 3,
+            fieldSize: 16,
+            pointsLimit: 4,
 
             gameTimer: null,
-            fps: 2
+            fps: 6
         }
     },
     computed: {
@@ -54,7 +54,7 @@ export default {
         },
         startGame() {
             this.snakeHead = this.getRandomPoint();
-            this.field[this.snakeHead.y][this.snakeHead.x] = 1
+            this.drawResolutedBlock(this.snakeHead, 1)
 
             this.gameTimer = requestAnimationFrame(this.gameTick)
         },
@@ -90,12 +90,45 @@ export default {
         },
         getRandomPoint() {
             return {
-                x: this.getRandomInt(0, this.fieldSize - 1),
-                y: this.getRandomInt(0, this.fieldSize - 1)
+                x: this.getRandomInt(0, this.fieldSize - 2),
+                y: this.getRandomInt(0, this.fieldSize - 2)
             }
         },
         collidePoints(pointA, pointB) {
-            return pointA.x === pointB.x && pointA.y === pointB.y
+            const xCollider = pointA.x === pointB.x || pointA.x === pointB.x + 1 || pointA.x + 1 === pointB.x || pointA.x + 1 === pointB.x + 1
+            const yCollider = pointA.y === pointB.y || pointA.y === pointB.y + 1 || pointA.y + 1 === pointB.y || pointA.y + 1 === pointB.y + 1
+
+            return xCollider && yCollider
+        },
+        headCollide(point) {
+            let xCollider = false
+            let yCollider = false
+
+            if (this.direction === 87) {
+                xCollider = this.snakeHead.x === point.x || this.snakeHead.x + 1 === point.x ||
+                    this.snakeHead.x === point.x + 1 || this.snakeHead.x + 1 === point.x + 1
+                yCollider = this.snakeHead.y === point.y || this.snakeHead.y === point.y + 1
+            }
+
+            if (this.direction === 65) {
+                xCollider = this.snakeHead.x === point.x || this.snakeHead.x === point.x + 1
+                yCollider = this.snakeHead.y === point.y || this.snakeHead.y + 1 === point.y ||
+                    this.snakeHead.y === point.y + 1 || this.snakeHead.y + 1 === point.y + 1
+            }
+
+            if (this.direction === 83) {
+                xCollider = this.snakeHead.x === point.x || this.snakeHead.x + 1 === point.x ||
+                    this.snakeHead.x === point.x + 1 || this.snakeHead.x + 1 === point.x + 1
+                yCollider = this.snakeHead.y + 1 === point.y || this.snakeHead.y + 1 === point.y + 1
+            }
+
+            if (this.direction === 68) {
+                xCollider = this.snakeHead.x + 1 === point.x || this.snakeHead.x + 1 === point.x + 1
+                yCollider = this.snakeHead.y === point.y || this.snakeHead.y + 1 === point.y ||
+                    this.snakeHead.y === point.y + 1 || this.snakeHead.y + 1 === point.y + 1
+            }
+
+            return xCollider && yCollider
         },
         gameTick() {
             if (!this.isStarted) return
@@ -108,8 +141,8 @@ export default {
             if (this.direction === 83) this.snakeHead.y++
             if (this.direction === 68) this.snakeHead.x++
 
-            const outOfMap = this.snakeHead.x > this.fieldSize - 1 || this.snakeHead.x < 0 || this.snakeHead.y > this.fieldSize - 1 || this.snakeHead.y < 0
-            const selfEaten = this.snakeBody.some(point => point.x === this.snakeHead.x && point.y === this.snakeHead.y)
+            const outOfMap = this.snakeHead.x > this.fieldSize - 2 || this.snakeHead.x < 0 || this.snakeHead.y > this.fieldSize - 2 || this.snakeHead.y < 0
+            const selfEaten = this.snakeBody.some(point => this.headCollide(point))
 
             if (outOfMap || selfEaten) {
                 this.resetScore()
@@ -151,15 +184,21 @@ export default {
         render() {
             this.field = Array.from(Array(this.fieldSize), () => new Array(this.fieldSize).fill(0))
 
-            this.field[this.snakeHead.y][this.snakeHead.x] = 1
+            this.drawResolutedBlock(this.snakeHead, 1)
 
             for (const bodyPart of this.snakeBody) {
-                this.field[bodyPart.y][bodyPart.x] = 2
+                this.drawResolutedBlock(bodyPart, 2)
             }
 
             for (const point of this.points) {
-                this.field[point.y][point.x] = 3
+                this.drawResolutedBlock(point, 3)
             }
+        },
+        drawResolutedBlock(point, colorCode) {
+            this.field[point.y][point.x] = this.field[point.y][point.x] === 1 ? 1 : colorCode
+            this.field[point.y + 1][point.x] = this.field[point.y + 1][point.x] === 1 ? 1 : colorCode
+            this.field[point.y][point.x + 1] = this.field[point.y][point.x + 1] === 1 ? 1 : colorCode
+            this.field[point.y + 1][point.x + 1] = this.field[point.y + 1][point.x + 1] === 1 ? 1 : colorCode
         }
     }
 }
@@ -179,8 +218,8 @@ main {
 }
 
 .block {
-    width: 6rem;
-    height: 6rem;
+    width: 1.5rem;
+    height: 1.5rem;
     border: 1px solid var(--panel-btn-hover);
 
     box-sizing: border-box;
