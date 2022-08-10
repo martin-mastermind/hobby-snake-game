@@ -27,7 +27,7 @@ export default {
             points: [],
             allowedKeys: [87, 65, 83, 68],
             direction: null,
-            fieldSize: 16,
+            fieldSize: 24,
             pointsLimit: 4,
 
             gameTimer: null,
@@ -209,7 +209,7 @@ main {
     display: flex;
     flex-wrap: wrap;
 
-    width: 24.8rem;
+    width: 36rem;
     margin: 8rem auto 0;
 }
 
@@ -223,7 +223,6 @@ main {
     border: 1px solid var(--panel-btn-hover);
 
     box-sizing: border-box;
-    margin: 0.1rem;
 }
 
 .block.snake-head {
