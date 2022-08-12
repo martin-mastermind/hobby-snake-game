@@ -25,17 +25,58 @@ export default {
             },
             snakeBody: [],
             points: [],
-            allowedKeys: [87, 65, 83, 68],
-            direction: null,
-            fieldSize: 24,
-            pointsLimit: 4,
 
+            direction: null,
             gameTimer: null,
-            fps: 6
         }
     },
     computed: {
-        ...mapGetters(['isStarted'])
+        ...mapGetters(['isStarted']),
+        fieldSize() {
+            return 24
+        },
+        pointsLimit() {
+            return 4
+        },
+        fps() {
+            return 6
+        },
+        keys() {
+            return {
+                UP: 87,
+                LEFT: 65,
+                DOWN: 83,
+                RIGHT: 68
+            }
+        },
+        movement() {
+            return {
+                [this.keys.UP]: () => this.snakeHead.y--,
+                [this.keys.LEFT]: () => this.snakeHead.x--,
+                [this.keys.DOWN]: () => this.snakeHead.y++,
+                [this.keys.RIGHT]: () => this.snakeHead.x++
+            }
+        },
+        headColliders() {
+            return {
+                [this.keys.UP]: point => ({
+                    x: Math.abs(this.snakeHead.x - point.x) <= 1,
+                    y: this.snakeHead.y === point.y || this.snakeHead.y === point.y + 1
+                }),
+                [this.keys.LEFT]: point => ({
+                    x: this.snakeHead.x === point.x || this.snakeHead.x === point.x + 1,
+                    y: Math.abs(this.snakeHead.y - point.y) <= 1
+                }),
+                [this.keys.DOWN]: point => ({
+                    x: Math.abs(this.snakeHead.x - point.x) <= 1,
+                    y: this.snakeHead.y + 1 === point.y || this.snakeHead.y + 1 === point.y + 1
+                }),
+                [this.keys.RIGHT]: point => ({
+                    x: this.snakeHead.x + 1 === point.x || this.snakeHead.x + 1 === point.x + 1,
+                    y: Math.abs(this.snakeHead.y - point.y) <= 1
+                })
+            }
+        }
     },
     created() {
         this.field = Array.from(Array(this.fieldSize), () => new Array(this.fieldSize).fill(0))
@@ -79,12 +120,12 @@ export default {
         initLogic(e) {
             if (!this.isStarted) return
 
-            if (!this.allowedKeys.includes(e.keyCode)) return
+            if (!Object.values(this.keys).includes(e.keyCode)) return
 
-            if (this.direction === 87 && e.keyCode === 83) return
-            if (this.direction === 83 && e.keyCode === 87) return
-            if (this.direction === 65 && e.keyCode === 68) return
-            if (this.direction === 68 && e.keyCode === 65) return
+            if (this.direction === this.keys.UP && e.keyCode === this.keys.DOWN) return
+            if (this.direction === this.keys.LEFT && e.keyCode === this.keys.RIGHT) return
+            if (this.direction === this.keys.DOWN && e.keyCode === this.keys.UP) return
+            if (this.direction === this.keys.RIGHT && e.keyCode === this.keys.LEFT) return
             
             this.direction = e.keyCode
         },
@@ -101,34 +142,11 @@ export default {
             return xCollider && yCollider
         },
         headCollide(point) {
-            let xCollider = false
-            let yCollider = false
+            if (!this.direction) return false
 
-            if (this.direction === 87) {
-                xCollider = this.snakeHead.x === point.x || this.snakeHead.x + 1 === point.x ||
-                    this.snakeHead.x === point.x + 1 || this.snakeHead.x + 1 === point.x + 1
-                yCollider = this.snakeHead.y === point.y || this.snakeHead.y === point.y + 1
-            }
+            const { x, y } = this.headColliders[this.direction](point)
 
-            if (this.direction === 65) {
-                xCollider = this.snakeHead.x === point.x || this.snakeHead.x === point.x + 1
-                yCollider = this.snakeHead.y === point.y || this.snakeHead.y + 1 === point.y ||
-                    this.snakeHead.y === point.y + 1 || this.snakeHead.y + 1 === point.y + 1
-            }
-
-            if (this.direction === 83) {
-                xCollider = this.snakeHead.x === point.x || this.snakeHead.x + 1 === point.x ||
-                    this.snakeHead.x === point.x + 1 || this.snakeHead.x + 1 === point.x + 1
-                yCollider = this.snakeHead.y + 1 === point.y || this.snakeHead.y + 1 === point.y + 1
-            }
-
-            if (this.direction === 68) {
-                xCollider = this.snakeHead.x + 1 === point.x || this.snakeHead.x + 1 === point.x + 1
-                yCollider = this.snakeHead.y === point.y || this.snakeHead.y + 1 === point.y ||
-                    this.snakeHead.y === point.y + 1 || this.snakeHead.y + 1 === point.y + 1
-            }
-
-            return xCollider && yCollider
+            return x && y
         },
         gameTick() {
             if (!this.isStarted) return
@@ -136,10 +154,7 @@ export default {
             const oldHeadPosition = { ...this.snakeHead }
             const oldTailPosition = this.snakeBody.length ? { ...this.snakeBody[this.snakeBody.length - 1] } : null
 
-            if (this.direction === 87) this.snakeHead.y--
-            if (this.direction === 65) this.snakeHead.x--
-            if (this.direction === 83) this.snakeHead.y++
-            if (this.direction === 68) this.snakeHead.x++
+            if (this.direction) this.movement[this.direction]()
 
             const outOfMap = this.snakeHead.x > this.fieldSize - 2 || this.snakeHead.x < 0 || this.snakeHead.y > this.fieldSize - 2 || this.snakeHead.y < 0
             const selfEaten = this.snakeBody.some(point => this.headCollide(point))
@@ -158,7 +173,7 @@ export default {
             }
 
             const pointSpawner = this.getRandomInt(0, 100)
-            if (pointSpawner > 75 && this.points.length < this.pointsLimit) {
+            if (pointSpawner > 80 && this.points.length < this.pointsLimit) {
                 let newPoint = this.getRandomPoint()
                 if (!this.collidePoints(newPoint, this.snakeHead) &&
                     this.snakeBody.every(point => !this.collidePoints(newPoint, point)) &&
